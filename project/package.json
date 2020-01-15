@@ -5,6 +5,7 @@
   "main": "db_setup.js",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "bootstrap": "^4.4.1",
     "express": "^4.16.3",
     "fs": "^0.0.1-security"
   },

@@ -13,3 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js');
+
+if (workbox){
+    console.log('Yay! Workbox loaded.');
+    workbox.precaching.precacheAndRoute([]); //list of files to cache called "precache manifest" built in workboxBuild in gulpfile.js
+}else{
+    console.log('Boo! Workbox didnt load');
+}

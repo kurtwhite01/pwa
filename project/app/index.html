@@ -20,6 +20,8 @@ limitations under the License.
   <meta charset="utf-8">
   <title>Dashboardr</title>
   <link rel="stylesheet" href="style/main.css" />
+  <!--<link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css" />-->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
 
   <!-- Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -54,56 +56,86 @@ limitations under the License.
 
   <main>
 
+    
+  <section class="form-section" id="event-form">
+
+      <div class="">
+        <div class="card-title">
+          <p>Add a Visit</p>
+        </div>
+        <div class="support-text">
+          <form action="#" method="post">
+            <div class="form-group">
+                <input id="date" class="form-control" type="date" name="date"/>
+              </div>            
+            <div class="form-group">
+              <input id="title" class="form-control" name="title" placeholder="Folder No."/>
+            </div>
+            <div class="form-group">
+              <input id="city" class="form-control" name="city" placeholder="Type"/>
+            </div>
+            <div class="form-group">
+              <input id="note" class="form-control" name="note" placeholder="Duplicate"/>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-6">
+                <input id="add-event-button" type="submit" class="btn btn-primary" value="Add">
+              </div>
+              <div class="form-group col-6">
+                  <input id="edit-event-button" type="submit" class="btn btn-primary" value="Edit">
+                </div>
+              <div class="form-group col-6">
+                <input id="delete-event-button" type="submit" class="btn btn-primary" value="Delete">
+              </div>
+          </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <section>
 
-      <h2>Current Events</h2>
+      <h2>Captured visits</h2>
 
       <!-- hidden warnings are displayed dynamically -->
       <p id="offline" class="message warn">You're offline and viewing stored data.</p>
       <p id="no-data" class="message error">You're offline and local data is unavailable.</p>
       <p id="data-saved" class="message success">Server data was saved for offline mode</p>
       <p id="save-error" class="message error">Server data couldn't be saved offline :(</p>
+    </section>
 
-      <ul id="container" class="container">
+
         <!-- items dynamically populated -->
-      </ul>
 
+    <section class="table-responsive">
+        <table class="table table-bordered table-hover table-sm">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Folder</th>                                    
+                    <th scope="col">Type</th>
+                    <th scope="col">Dup.</th>                                    
+                </tr>
+            </thead>
+            <tbody id="container" class="container">
+              <tr>
+                <th scope="ROW">2</th>
+                <td>2020/01/19</td>
+                <td>12345678</td>
+                <td>IP</td>
+                <td>Y</td>
+                <td><a href="#">Edit</a></td>
+                <td><a href="#">Del.</a></td>
+
+              </tr>
+              
+            </tbody>
+        </table>
     </section>
+    
 
-    <section class="form-section">
 
-      <div class="card">
-        <div class="card-title">
-          <h2>Add an Event</h2>
-        </div>
-        <div class="support-text">
-          <form action="#" method="post">
-            <div class="textfield">
-              <label for="title">Title</label>
-              <input id="title" name="title"/>
-            </div>
-            <div class="textfield">
-              <label for="date">Date</label>
-              <input id="date" type="date" name="date"/>
-            </div>
-            <div class="textfield">
-              <label for="city">City</label>
-              <input id="city" name="city"/>
-            </div>
-            <div class="textfield">
-              <label for="note">Note</label>
-              <input id="note" name="note"/>
-            </div>
-            <div class="card-action">
-              <button id="add-event-button" type="submit" class="raised button ripple">
-                Add
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-    </section>
 
   </main>
 
@@ -111,15 +143,26 @@ limitations under the License.
 
     <ul class="social">
       <li><a href="#" class="social-link">Twitter</a></li>
-      <li><a href="#" class="social-link">Facebook</a></li>
-      <li><a href="#" class="social-link">Google+</a></li>
-      <li><a href="#" class="social-link">Digg</a></li>
+      <li><a href="#" class="social-link">Fakebook</a></li>
+      <li><a href="#" class="social-link">Oogle+</a></li>
+      <li><a href="#" class="social-link">DiggIt</a></li>
     </ul>
 
   </footer>
 
   <script src="js/idb-promised.js"></script>
   <script src="js/main.js"></script>
+
+  <!-- jQuery -->
+  <!--<script src="js/jquery.js"></script>-->
+
+  <!-- Bootstrap Core JavaScript -->
+  <!--<script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>-->
+
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
 
 </body>
 </html>

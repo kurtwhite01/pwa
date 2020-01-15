@@ -15,6 +15,17 @@ limitations under the License.
 */
 
 // TODO - register service worker
+if ('serviceWorker'in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+    .then(registration => {
+      console.log('Service Worker registered: Scope: ${registration.scope}');
+    })
+    .catch(err => {
+      console.log('Service Worker registration failed: ${err}');
+    });
+  });
+}
 
 const container = document.getElementById('container');
 const offlineMessage = document.getElementById('offline');
@@ -22,26 +33,138 @@ const noDataMessage = document.getElementById('no-data');
 const dataSavedMessage = document.getElementById('data-saved');
 const saveErrorMessage = document.getElementById('save-error');
 const addEventButton = document.getElementById('add-event-button');
+const deleteEventButton = document.getElementById('delete-event-button');
+const editEventButton = document.getElementById('edit-event-button');
 
 addEventButton.addEventListener('click', addAndPostEvent);
+deleteEventButton.addEventListener('click', deleteEvent);
+editEventButton.addEventListener('click', editEvent);
+
+
 
 Notification.requestPermission();
 
 // TODO - create indexedDB database
+function createIndexedDB() {
+  if (!('indexedDB'in window)) {return null;}
+  return idb.open('dashboardr', 1, function(upgradeDb){
+    if (!upgradeDb.objectStoreNames.contains('events')) {
+      const eventsOS = upgradeDb.createObjectStore('events', {keyPath: 'id'});
+    }
+  });
+}
 
-loadContentNetworkFirst();
+const dbPromise = createIndexedDB();
+
+/* Get Info from IndexedDb */
+function getLocalEventData() {
+  if(!('indexedDB' in window)) {return null;}
+  return dbPromise.then(db => {
+    const tx = db.transaction ('events', 'readonly');
+    const store = tx.objectStore('events');
+    return store.getAll();
+  });
+}
+
+
+
+function editEventLocally(eventId){
+  if(!('indexedDB' in window)) {return null;}
+  //return dbPromise.then(db => {
+    const DBOpenRequest = window.indexedDB.open('dashboardr', 1);
+    DBOpenRequest.onsuccess = function(event) {
+      console.log('Db initialised.');
+      db = DBOpenRequest.result;
+      
+      const tx = db.transaction ('events', 'readwrite');
+      tx.oncomplete = function (event) {
+        console.log('Tx completed.');
+      };
+      tx.onerror = function (event) {
+        console.log('Tx not openeded because ' + tx.error);
+      };
+      
+      const store = tx.objectStore('events');
+      const objectStoreRequest = store.get(eventId);
+
+      objectStoreRequest.onsuccess = function (event) {
+        console.log('Request succesfull.');
+        //myRecord = objectStoreRequest.result;
+        //console.log(myRecord);
+        let myRecord = objectStoreRequest.result;
+
+        document.getElementById('date').value = myRecord.date;
+        document.getElementById('title').value = myRecord.title;
+
+        document.getElementById('event-form').scrollIntoView();
+
+      };
+      
+    };
+
+}
+
+/* Remove data from IndexdDb */
+function deleteEventLocally(eventId){ //change eventId to
+  if (!('indexedDB' in window)) {return null;}
+  return dbPromise.then(db => {
+    const tx = db.transaction ('events', 'readwrite');
+    const store = tx.objectStore('events');
+    console.log(eventId + 'deleted');
+    //store.delete(eventId); //need to work out how to promisify the delete TODO 
+    const events = getLocalEventData(); 
+    return Promise.all(events.map(eventId => store.delete(eventId)))
+    .catch (() =>{
+      tx.abort();
+      throw Error('Event not deleted from store.')
+    });
+  });
+}
+
+function saveEventDataLocally(events) { //events is an object
+  if (!('indexedDB' in window)) {return null;}
+  return dbPromise.then(db => {
+    const tx = db.transaction('events', 'readwrite');
+    const store = tx.objectStore('events');
+    return Promise.all(events.map(event => store.put(event)))
+    .catch (() => {
+      tx.abort();
+      throw Error('Events were not added to the store');
+    });
+  });
+}
 
 function loadContentNetworkFirst() {
   getServerData()
   .then(dataFromNetwork => {
     updateUI(dataFromNetwork);
+    saveEventDataLocally(dataFromNetwork)
+    .then(() => {
+      setLastUpdated(new Date());
+      messageDataSaved();
+    }).catch(err => {
+      messageSaveError();
+      console.warn(err);
+    });
   }).catch(err => { // if we can't connect to the server...
     console.log('Network requests have failed, this is expected if offline');
+    getLocalEventData()
+    .then(offlineData => {
+      if (offlineData.length == 0) {
+        messageNoData();
+      } else {
+        messageOffline();
+        updateUI(offlineData);
+      }
+    });
   });
 }
 
-/* Network functions */
+loadContentNetworkFirst();
 
+
+
+/* Network functions */
 function getServerData() {
   return fetch('api/getAll').then(response => {
     if (!response.ok) {
@@ -59,10 +182,14 @@ function addAndPostEvent(e) {
     date: document.getElementById('date').value,
     city: document.getElementById('city').value,
     note: document.getElementById('note').value
+
   };
   updateUI([data]);
 
   // TODO - save event data locally
+
+
+  saveEventDataLocally([data]);
 
   const headers = new Headers({'Content-Type': 'application/json'});
   const body = JSON.stringify(data);
@@ -71,6 +198,35 @@ function addAndPostEvent(e) {
     headers: headers,
     body: body
   });
+
+
+}
+
+function editEvent(eventId) {
+  console.log(eventId);
+
+  editEventLocally(eventId);
+}
+
+function deleteEvent(eventId){
+  console.log(eventId);
+
+  deleteEventLocally(eventId);
+
+  const data = {
+    id: eventId
+  };
+
+/*
+  const headers = new Headers({'Content-Type': 'application/json'});
+  const body = JSON.stringify(data);
+  console.log(JSON.stringify(data));
+  location.reload();
+  return fetch('api/delete', {
+    method: 'POST',
+    headers: headers,
+    body: body
+  });*/
 }
 
 /* UI functions */
@@ -78,14 +234,15 @@ function addAndPostEvent(e) {
 function updateUI(events) {
   events.forEach(event => {
     const item =
-      `<li class="card">
-         <div class="card-text">
-           <h2>${event.title}</h2>
-           <h4>${event.date}</h4>
-           <h4>${event.city}</h4>
-           <p>${event.note}</p>
-         </div>
-       </li>`;
+    `<tr>
+      <th scope="ROW">1</th>     
+      <td>${event.date}</td>
+      <td>${event.title}</td>
+      <td>${event.title}</td>
+      <td>${event.title}</td>
+      <td type="submit" id="edit-event-button" onclick="editEvent(${event.id})">Edit</td> 
+      <td type="submit" onclick="deleteEvent(${event.id})">Delete</td>  
+  </tr>`
     container.insertAdjacentHTML('beforeend', item);
   });
 }
@@ -125,3 +282,4 @@ function getLastUpdated() {
 function setLastUpdated(date) {
   localStorage.setItem('lastUpdated', date);
 }
+
